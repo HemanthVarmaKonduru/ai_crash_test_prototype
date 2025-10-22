@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -211,6 +211,12 @@ export default function PromptInjectionPage() {
   const [chatInput, setChatInput] = useState("")
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  
+  // New state for real API integration
+  const [currentTestId, setCurrentTestId] = useState<string | null>(null)
+  const [currentStep, setCurrentStep] = useState("")
+  const [testResults, setTestResults] = useState<any>(null)
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
 
   const handleProviderChange = (value: string) => {
     setModelProvider(value)
@@ -218,18 +224,112 @@ export default function PromptInjectionPage() {
   }
 
   const handleStartTest = async () => {
-    setIsRunning(true)
-    setProgress(0)
-    setShowResults(false)
+    try {
+      setIsRunning(true)
+      setProgress(0)
+      setShowResults(false)
+      setCurrentStep("Starting test...")
 
-    // Simulate test progress
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setProgress(i)
+      // Start the test via API
+      const response = await fetch('http://localhost:8000/api/v1/test/prompt-injection/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model_provider: modelProvider,
+          model_name: modelName,
+          api_endpoint: apiEndpoint,
+          api_key: apiKey,
+          data_type: dataType,
+          test_mode: testMode
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to start test: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      setCurrentTestId(result.test_id)
+      setCurrentStep(result.current_step)
+      setProgress(result.progress)
+
+      // Start polling for status updates
+      startPolling(result.test_id)
+
+    } catch (error) {
+      console.error('Error starting test:', error)
+      setIsRunning(false)
+      setCurrentStep(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
+  }
 
-    setIsRunning(false)
-    setShowResults(true)
+  const startPolling = (testId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${testId}/status`)
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get status: ${response.statusText}`)
+        }
+
+        const status = await response.json()
+        setProgress(status.progress)
+        setCurrentStep(status.current_step)
+
+        if (status.status === 'completed') {
+          clearInterval(interval)
+          setIsRunning(false)
+          setShowResults(true)
+          
+          // Fetch final results
+          const resultsResponse = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${testId}/results`)
+          if (resultsResponse.ok) {
+            const results = await resultsResponse.json()
+            setTestResults(results)
+          }
+        } else if (status.status === 'failed') {
+          clearInterval(interval)
+          setIsRunning(false)
+          setCurrentStep(`Test failed: ${status.message}`)
+        }
+      } catch (error) {
+        console.error('Error polling status:', error)
+        clearInterval(interval)
+        setIsRunning(false)
+        setCurrentStep(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }, 2000) // Poll every 2 seconds
+
+    setPollingInterval(interval)
+  }
+
+  const handleDownloadReport = async () => {
+    if (!currentTestId) return
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${currentTestId}/download`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download report: ${response.statusText}`)
+      }
+
+      const report = await response.json()
+      
+      // Create and download the file
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `prompt-injection-report-${currentTestId}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error downloading report:', error)
+    }
   }
 
   const handleSendMessage = () => {
@@ -250,6 +350,15 @@ export default function PromptInjectionPage() {
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text)
   }
+
+  // Cleanup polling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+    }
+  }, [pollingInterval])
 
   return (
     <div className="flex flex-col gap-6">
@@ -383,6 +492,9 @@ export default function PromptInjectionPage() {
                 <span className="font-medium">{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
+              <div className="text-sm text-muted-foreground">
+                {currentStep}
+              </div>
             </div>
           )}
 
@@ -442,7 +554,7 @@ export default function PromptInjectionPage() {
                   <CardTitle>Test Results</CardTitle>
                   <CardDescription>Comprehensive AI model security assessment results</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleDownloadReport}>
                   <Download className="mr-2 size-4" />
                   Export
                 </Button>
@@ -455,10 +567,10 @@ export default function PromptInjectionPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total Tests</p>
-                        <p className="text-3xl font-bold">1,247</p>
+                        <p className="text-3xl font-bold">{testResults?.total_tests || 0}</p>
                         <p className="text-xs text-green-500 flex items-center gap-1 mt-1">
                           <TrendingUp className="size-3" />
-                          +12% from last month
+                          Real-time testing
                         </p>
                       </div>
                       <Shield className="size-8 text-blue-500 opacity-50" />
@@ -470,9 +582,11 @@ export default function PromptInjectionPage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Passed</p>
-                        <p className="text-3xl font-bold">892</p>
-                        <p className="text-xs text-muted-foreground mt-1">71.5%</p>
+                        <p className="text-sm text-muted-foreground">Successful Resistances</p>
+                        <p className="text-3xl font-bold">{testResults?.successful_resistances || 0}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {testResults?.detection_rate ? `${testResults.detection_rate.toFixed(1)}%` : '0%'} detection rate
+                        </p>
                       </div>
                       <CheckCircle2 className="size-8 text-green-500 opacity-50" />
                     </div>
@@ -483,9 +597,11 @@ export default function PromptInjectionPage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Failed</p>
-                        <p className="text-3xl font-bold">234</p>
-                        <p className="text-xs text-muted-foreground mt-1">18.8%</p>
+                        <p className="text-sm text-muted-foreground">Failed Resistances</p>
+                        <p className="text-3xl font-bold">{testResults?.failed_resistances || 0}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {testResults?.failed_resistances ? `${((testResults.failed_resistances / testResults.total_tests) * 100).toFixed(1)}%` : '0%'} vulnerability
+                        </p>
                       </div>
                       <XCircle className="size-8 text-red-500 opacity-50" />
                     </div>
@@ -496,11 +612,21 @@ export default function PromptInjectionPage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Unknown</p>
-                        <p className="text-3xl font-bold">121</p>
-                        <p className="text-xs text-muted-foreground mt-1">9.7%</p>
+                        <p className="text-sm text-muted-foreground">Execution Time</p>
+                        <p className="text-3xl font-bold">
+                          {testResults?.performance_metrics?.total_execution_time 
+                            ? `${(testResults.performance_metrics.total_execution_time / 60).toFixed(1)}m`
+                            : '0m'
+                          }
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {testResults?.performance_metrics?.average_response_time 
+                            ? `Avg: ${testResults.performance_metrics.average_response_time.toFixed(2)}s`
+                            : 'No data'
+                          }
+                        </p>
                       </div>
-                      <AlertTriangle className="size-8 text-yellow-500 opacity-50" />
+                      <Clock className="size-8 text-yellow-500 opacity-50" />
                     </div>
                   </CardContent>
                 </Card>

@@ -24,6 +24,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../libs/common/src")
 from connectors.openai_connector import OpenAIConnector
 from storage.credential_storage import CredentialStorage
 from storage.model_metadata import ModelMetadataStorage
+from prompt_injection_api import router as prompt_injection_router
 
 app = FastAPI(
     title="Adversarial Sandbox API Gateway",
@@ -532,6 +533,9 @@ async def cancel_prompt_injection_test(session_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to cancel test: {str(e)}"
         )
+
+# Include prompt injection router
+app.include_router(prompt_injection_router, prefix="/api/v1", tags=["prompt-injection"])
 
 if __name__ == "__main__":
     import uvicorn
