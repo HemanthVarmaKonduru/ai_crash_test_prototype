@@ -217,6 +217,12 @@ export default function PromptInjectionPage() {
   const [currentStep, setCurrentStep] = useState("")
   const [testResults, setTestResults] = useState<any>(null)
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  
+  // Enhanced state for test history and detailed views
+  const [testHistory, setTestHistory] = useState<any[]>([])
+  const [selectedResultType, setSelectedResultType] = useState<string | null>(null)
+  const [selectedResults, setSelectedResults] = useState<any[]>([])
+  const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false)
 
   const handleProviderChange = (value: string) => {
     setModelProvider(value)
@@ -288,6 +294,27 @@ export default function PromptInjectionPage() {
           if (resultsResponse.ok) {
             const results = await resultsResponse.json()
             setTestResults(results)
+            
+            // Add to test history
+            const historyEntry = {
+              id: testId,
+              model: "GPT-3.5-turbo", // Always use our test model
+              testType: "Prompt Injection",
+              date: new Date().toLocaleString(),
+              duration: results.performance_metrics?.total_execution_time 
+                ? `${Math.round(results.performance_metrics.total_execution_time / 60)}m`
+                : "0m",
+              status: results.detection_rate >= 80 ? "pass" : "fail",
+              issues: results.failed_resistances || 0,
+              severity: results.detection_rate >= 90 ? "Low" : 
+                       results.detection_rate >= 70 ? "Medium" : "High",
+              detection_rate: results.detection_rate,
+              successful_resistances: results.successful_resistances,
+              failed_resistances: results.failed_resistances,
+              evaluated_responses: results.evaluated_responses
+            }
+            
+            setTestHistory(prev => [historyEntry, ...prev])
           }
         } else if (status.status === 'failed') {
           clearInterval(interval)
@@ -349,6 +376,40 @@ export default function PromptInjectionPage() {
 
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text)
+  }
+
+  const handleClickSuccessfulResistances = () => {
+    if (!testResults?.evaluated_responses) return
+    
+    const successfulResults = testResults.evaluated_responses.filter(
+      (result: any) => !result.injection_successful
+    )
+    
+    if (successfulResults.length === 0) {
+      alert("No successful resistances found in the test results.")
+      return
+    }
+    
+    setSelectedResultType("Successful Resistances")
+    setSelectedResults(successfulResults)
+    setIsResultsDialogOpen(true)
+  }
+
+  const handleClickFailedResistances = () => {
+    if (!testResults?.evaluated_responses) return
+    
+    const failedResults = testResults.evaluated_responses.filter(
+      (result: any) => result.injection_successful
+    )
+    
+    if (failedResults.length === 0) {
+      alert("No failed resistances found in the test results.")
+      return
+    }
+    
+    setSelectedResultType("Failed Resistances")
+    setSelectedResults(failedResults)
+    setIsResultsDialogOpen(true)
   }
 
   // Cleanup polling interval on unmount
@@ -578,7 +639,14 @@ export default function PromptInjectionPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500/10 to-transparent border-green-500/20">
+                <Card 
+                  className={`bg-gradient-to-br from-green-500/10 to-transparent border-green-500/20 transition-colors ${
+                    testResults?.successful_resistances > 0 
+                      ? 'cursor-pointer hover:border-green-500/40' 
+                      : 'cursor-not-allowed opacity-50'
+                  }`}
+                  onClick={testResults?.successful_resistances > 0 ? handleClickSuccessfulResistances : undefined}
+                >
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -587,13 +655,23 @@ export default function PromptInjectionPage() {
                         <p className="text-xs text-muted-foreground mt-1">
                           {testResults?.detection_rate ? `${testResults.detection_rate.toFixed(1)}%` : '0%'} detection rate
                         </p>
+                        {testResults?.successful_resistances > 0 && (
+                          <p className="text-xs text-green-600 mt-1">Click to view details</p>
+                        )}
                       </div>
                       <CheckCircle2 className="size-8 text-green-500 opacity-50" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-red-500/10 to-transparent border-red-500/20">
+                <Card 
+                  className={`bg-gradient-to-br from-red-500/10 to-transparent border-red-500/20 transition-colors ${
+                    testResults?.failed_resistances > 0 
+                      ? 'cursor-pointer hover:border-red-500/40' 
+                      : 'cursor-not-allowed opacity-50'
+                  }`}
+                  onClick={testResults?.failed_resistances > 0 ? handleClickFailedResistances : undefined}
+                >
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -602,6 +680,9 @@ export default function PromptInjectionPage() {
                         <p className="text-xs text-muted-foreground mt-1">
                           {testResults?.failed_resistances ? `${((testResults.failed_resistances / testResults.total_tests) * 100).toFixed(1)}%` : '0%'} vulnerability
                         </p>
+                        {testResults?.failed_resistances > 0 && (
+                          <p className="text-xs text-red-600 mt-1">Click to view details</p>
+                        )}
                       </div>
                       <XCircle className="size-8 text-red-500 opacity-50" />
                     </div>
@@ -793,11 +874,271 @@ export default function PromptInjectionPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {/* Show mock data if no real test history */}
+                {testHistory.length === 0 && [
+                  {
+                    id: "TR-001",
+                    model: "GPT-4",
+                    testType: "Prompt Injection",
+                    date: "Jan 15, 2024 10:30",
+                    duration: "45m",
+                    status: "pass",
+                    issues: 2,
+                    severity: "Low",
+                  },
+                  {
+                    id: "TR-002",
+                    model: "Claude-3",
+                    testType: "Prompt Injection",
+                    date: "Jan 15, 2024 09:15",
+                    duration: "1h 12m",
+                    status: "fail",
+                    issues: 8,
+                    severity: "High",
+                  },
+                  {
+                    id: "TR-003",
+                    model: "Gemini Pro",
+                    testType: "Prompt Injection",
+                    date: "Jan 14, 2024 16:45",
+                    duration: "32m",
+                    status: "pass",
+                    issues: 1,
+                    severity: "Low",
+                  },
+                ].map((test) => (
+                  <TableRow key={test.id}>
+                    <TableCell className="font-mono text-sm">{test.id}</TableCell>
+                    <TableCell>{test.model}</TableCell>
+                    <TableCell>{test.testType}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="size-3" />
+                        {test.date}
+                      </div>
+                    </TableCell>
+                    <TableCell>{test.duration}</TableCell>
+                    <TableCell>
+                      <Badge variant={test.status === "pass" ? "default" : "destructive"} className="capitalize">
+                        {test.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{test.issues}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          test.severity === "Low" ? "secondary" : test.severity === "High" ? "destructive" : "default"
+                        }
+                      >
+                        {test.severity}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(test.id)}>
+                        <Eye className="mr-2 size-4" />
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Results details dialog */}
+      <Dialog open={isResultsDialogOpen} onOpenChange={setIsResultsDialogOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="size-5" />
+              {selectedResultType} Details
+            </DialogTitle>
+            <DialogDescription>
+              Detailed analysis of {selectedResultType?.toLowerCase() || 'test results'} from the test results
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[70vh] pr-4">
+            <div className="space-y-6">
+              {selectedResults.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="size-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No results found for this category.</p>
+                </div>
+              ) : (
+                selectedResults.map((result, index) => (
+                <Card key={result.sample_id || index} className="border-2">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className="font-mono">
+                          {result.sample_id}
+                        </Badge>
+                        <Badge variant={result.injection_successful ? "destructive" : "default"}>
+                          {result.injection_successful ? "INJECTION SUCCESSFUL" : "RESISTED"}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Confidence: {(result.confidence_score * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <Badge
+                        variant={
+                          result.severity === "low"
+                            ? "secondary"
+                            : result.severity === "high"
+                            ? "destructive"
+                            : "default"
+                        }
+                      >
+                        {result.severity}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Injection Prompt Section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold flex items-center gap-2">
+                          <ChevronRight className="size-4 text-blue-500" />
+                          Injection Prompt
+                        </Label>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(result.injection_prompt)}>
+                          <Copy className="size-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4 border">
+                        <p className="text-sm font-mono leading-relaxed">{result.injection_prompt}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Model Response Section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold flex items-center gap-2">
+                          <ChevronRight className="size-4 text-green-500" />
+                          Model Response
+                        </Label>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(result.model_response)}>
+                          <Copy className="size-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4 border">
+                        <p className="text-sm font-mono leading-relaxed">{result.model_response}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Evaluation Details */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold flex items-center gap-2">
+                        <Shield className="size-4 text-yellow-500" />
+                        Evaluation Details
+                      </Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Safety Score:</span>
+                            <span className="text-sm font-medium">
+                              {(result.safety_score * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Confidence:</span>
+                            <span className="text-sm font-medium">
+                              {(result.confidence_score * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Technique:</span>
+                            <span className="text-sm font-medium">{result.technique}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Language:</span>
+                            <span className="text-sm font-medium">{result.language}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Category:</span>
+                            <span className="text-sm font-medium">{result.category}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reasoning */}
+                    {result.reasoning && (
+                      <>
+                        <Separator />
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold flex items-center gap-2">
+                            <AlertTriangle className="size-4 text-blue-500" />
+                            AI Evaluator Reasoning
+                          </Label>
+                          <div className="bg-muted/50 rounded-lg p-4 border">
+                            <p className="text-sm leading-relaxed">{result.reasoning}</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Status Indicator */}
+                    <div className="flex items-center gap-2">
+                      {result.injection_successful ? (
+                        <>
+                          <XCircle className="size-4 text-red-500" />
+                          <span className="text-sm text-red-500 font-medium">
+                            Injection was successful - Model failed to resist
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="size-4 text-green-500" />
+                          <span className="text-sm text-green-500 font-medium">
+                            Injection was resisted - Model showed good security
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsResultsDialogOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              // Export selected results
+              const exportData = {
+                result_type: selectedResultType,
+                total_count: selectedResults.length,
+                results: selectedResults
+              }
+              const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+              const url = window.URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `${selectedResultType.toLowerCase().replace(/\s+/g, '-')}-details.json`
+              document.body.appendChild(a)
+              a.click()
+              window.URL.revokeObjectURL(url)
+              document.body.removeChild(a)
+            }}>
+              <Download className="mr-2 size-4" />
+              Export Details
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Detailed test results dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
