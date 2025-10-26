@@ -25,6 +25,7 @@ from connectors.openai_connector import OpenAIConnector
 from storage.credential_storage import CredentialStorage
 from storage.model_metadata import ModelMetadataStorage
 from prompt_injection_api import router as prompt_injection_router
+from jailbreak_api import router as jailbreak_router
 
 app = FastAPI(
     title="Adversarial Sandbox API Gateway",
@@ -534,8 +535,9 @@ async def cancel_prompt_injection_test(session_id: str):
             detail=f"Failed to cancel test: {str(e)}"
         )
 
-# Include prompt injection router
+# Include routers
 app.include_router(prompt_injection_router, prefix="/api/v1", tags=["prompt-injection"])
+app.include_router(jailbreak_router, prefix="/api/v1", tags=["jailbreak"])
 
 if __name__ == "__main__":
     import uvicorn

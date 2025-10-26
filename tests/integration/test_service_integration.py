@@ -501,3 +501,6 @@ class TestPerformanceIntegration:
             # Response time should be reasonable
             assert avg_response_time < 2.0, f"Average response time {avg_response_time:.2f}s is too high"
 
+
+
+

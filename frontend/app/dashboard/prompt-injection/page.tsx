@@ -314,7 +314,11 @@ export default function PromptInjectionPage() {
               evaluated_responses: results.evaluated_responses
             }
             
-            setTestHistory(prev => [historyEntry, ...prev])
+            setTestHistory(prev => {
+              const newHistory = [historyEntry, ...prev]
+              // Keep only the last 50 test runs to prevent localStorage from growing too large
+              return newHistory.slice(0, 50)
+            })
           }
         } else if (status.status === 'failed') {
           clearInterval(interval)
@@ -371,7 +375,19 @@ export default function PromptInjectionPage() {
 
   const handleViewDetails = (testId: string) => {
     setSelectedTestId(testId)
-    setIsDetailDialogOpen(true)
+    
+    // Find the test in our history
+    const testEntry = testHistory.find(test => test.id === testId)
+    
+    if (testEntry && testEntry.evaluated_responses) {
+      // Use real evaluation data from our test results
+      setSelectedResults(testEntry.evaluated_responses)
+      setSelectedResultType("Test Run Details")
+      setIsResultsDialogOpen(true)
+    } else {
+      // Fall back to mock data for demo purposes
+      setIsDetailDialogOpen(true)
+    }
   }
 
   const handleCopyText = (text: string) => {
@@ -411,6 +427,33 @@ export default function PromptInjectionPage() {
     setSelectedResults(failedResults)
     setIsResultsDialogOpen(true)
   }
+
+  const handleClearHistory = () => {
+    if (confirm("Are you sure you want to clear all test history? This action cannot be undone.")) {
+      setTestHistory([])
+      localStorage.removeItem('prompt-injection-test-history')
+    }
+  }
+
+  // Load test history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('prompt-injection-test-history')
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory)
+        setTestHistory(parsedHistory)
+      } catch (error) {
+        console.error('Error loading test history from localStorage:', error)
+      }
+    }
+  }, [])
+
+  // Save test history to localStorage whenever it changes
+  useEffect(() => {
+    if (testHistory.length > 0) {
+      localStorage.setItem('prompt-injection-test-history', JSON.stringify(testHistory))
+    }
+  }, [testHistory])
 
   // Cleanup polling interval on unmount
   useEffect(() => {
@@ -780,8 +823,30 @@ export default function PromptInjectionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Test History</CardTitle>
-          <CardDescription>Search and filter historical test runs</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Test History</CardTitle>
+              <CardDescription>
+                Search and filter historical test runs
+                {testHistory.length > 0 && (
+                  <span className="ml-2 text-blue-600 font-medium">
+                    ({testHistory.length} test{testHistory.length !== 1 ? 's' : ''} stored)
+                  </span>
+                )}
+              </CardDescription>
+            </div>
+            {testHistory.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleClearHistory}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <XCircle className="mr-2 size-4" />
+                Clear History
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -953,15 +1018,56 @@ export default function PromptInjectionPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Target className="size-5" />
-              {selectedResultType} Details
+              {selectedResultType === "Test Run Details" ? `Test Run: ${selectedTestId}` : `${selectedResultType} Details`}
             </DialogTitle>
             <DialogDescription>
-              Detailed analysis of {selectedResultType?.toLowerCase() || 'test results'} from the test results
+              {selectedResultType === "Test Run Details" 
+                ? `Complete evaluation data for test run ${selectedTestId}`
+                : `Detailed analysis of ${selectedResultType?.toLowerCase() || 'test results'} from the test results`
+              }
             </DialogDescription>
           </DialogHeader>
 
           <ScrollArea className="h-[70vh] pr-4">
             <div className="space-y-6">
+              {/* Test Run Summary */}
+              {selectedResultType === "Test Run Details" && selectedResults.length > 0 && (
+                <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Test Run Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">{selectedResults.length}</p>
+                        <p className="text-sm text-muted-foreground">Total Tests</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-green-600">
+                          {selectedResults.filter(r => !r.injection_successful).length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Successful Resistances</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-red-600">
+                          {selectedResults.filter(r => r.injection_successful).length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Failed Resistances</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-yellow-600">
+                          {selectedResults.length > 0 
+                            ? `${((selectedResults.filter(r => !r.injection_successful).length / selectedResults.length) * 100).toFixed(1)}%`
+                            : '0%'
+                          }
+                        </p>
+                        <p className="text-sm text-muted-foreground">Detection Rate</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {selectedResults.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="size-12 text-muted-foreground mx-auto mb-4" />
@@ -1120,14 +1226,25 @@ export default function PromptInjectionPage() {
               // Export selected results
               const exportData = {
                 result_type: selectedResultType,
+                test_id: selectedTestId,
                 total_count: selectedResults.length,
+                summary: selectedResultType === "Test Run Details" ? {
+                  total_tests: selectedResults.length,
+                  successful_resistances: selectedResults.filter(r => !r.injection_successful).length,
+                  failed_resistances: selectedResults.filter(r => r.injection_successful).length,
+                  detection_rate: selectedResults.length > 0 
+                    ? ((selectedResults.filter(r => !r.injection_successful).length / selectedResults.length) * 100).toFixed(1) + '%'
+                    : '0%'
+                } : undefined,
                 results: selectedResults
               }
               const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
               const url = window.URL.createObjectURL(blob)
               const a = document.createElement('a')
               a.href = url
-              a.download = `${selectedResultType.toLowerCase().replace(/\s+/g, '-')}-details.json`
+              a.download = selectedResultType === "Test Run Details" 
+                ? `test-run-${selectedTestId}-details.json`
+                : `${selectedResultType.toLowerCase().replace(/\s+/g, '-')}-details.json`
               document.body.appendChild(a)
               a.click()
               window.URL.revokeObjectURL(url)

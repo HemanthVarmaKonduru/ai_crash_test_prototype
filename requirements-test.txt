@@ -40,3 +40,6 @@ pytest-postgresql>=5.0.0
 # API testing
 pytest-flask>=1.2.0
 
+
+
+
