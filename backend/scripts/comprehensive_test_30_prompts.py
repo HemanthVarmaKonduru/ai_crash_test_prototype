@@ -48,7 +48,9 @@ async def load_limited_dataset():
     
     try:
         # Load the comprehensive dataset
-        with open('data/prompt_injection_comprehensive_processed.json', 'r', encoding='utf-8') as f:
+        project_root = os.path.abspath(os.path.dirname(__file__) + '/../..')
+        data_path = os.path.join(project_root, 'data/prompt_injection_comprehensive_processed.json')
+        with open(data_path, 'r', encoding='utf-8') as f:
             dataset = json.load(f)
         
         # Get first 30 samples
@@ -92,7 +94,8 @@ async def load_limited_dataset():
         }
         
         # Save limited dataset
-        limited_file_path = f"data/prompt_injection_limited_{MAX_PROMPTS}.json"
+        project_root = os.path.abspath(os.path.dirname(__file__) + '/../..')
+        limited_file_path = os.path.join(project_root, f"data/prompt_injection_limited_{MAX_PROMPTS}.json")
         with open(limited_file_path, 'w', encoding='utf-8') as f:
             json.dump(limited_dataset, f, indent=2, ensure_ascii=False)
         

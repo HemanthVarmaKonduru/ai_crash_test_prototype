@@ -16,10 +16,11 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Add paths
-sys.path.insert(0, 'platform/libs/agents')
-sys.path.insert(0, 'platform/libs/evaluation')
-sys.path.insert(0, 'platform/services/prompt-injection-tester/src')
+# Add paths (relative to project root)
+project_root = os.path.abspath(os.path.dirname(__file__) + '/../..')
+sys.path.insert(0, os.path.join(project_root, 'platform/libs/agents'))
+sys.path.insert(0, os.path.join(project_root, 'platform/libs/evaluation'))
+sys.path.insert(0, os.path.join(project_root, 'platform/services/prompt-injection-tester/src'))
 
 # Import all agents
 from agents.validation_agent import PromptInjectionValidationAgent
@@ -48,7 +49,9 @@ class MultiAgentIntegrationTest:
         print(f"📊 Loading first {limit} samples from prompt injection dataset...")
         
         try:
-            with open('data/prompt_injection.json', 'r', encoding='utf-8') as f:
+            project_root = os.path.abspath(os.path.dirname(__file__) + '/../..')
+            data_path = os.path.join(project_root, 'data/prompt_injection.json')
+            with open(data_path, 'r', encoding='utf-8') as f:
                 dataset = json.load(f)
             
             # Take first N samples

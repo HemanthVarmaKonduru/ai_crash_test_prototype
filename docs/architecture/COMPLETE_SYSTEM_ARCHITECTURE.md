@@ -134,7 +134,7 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "API Gateway (unified_api_server.py)"
+    subgraph "API Gateway (backend/api/main.py)"
         GATEWAY[FastAPI Application]
         CORS[CORS Middleware]
         ROUTES[Route Handlers]
@@ -694,7 +694,7 @@ graph TB
 
 ```bash
 # Start the unified API server
-python unified_api_server.py
+python backend/run.py
 
 # Start the frontend (in separate terminal)
 cd frontend && npm run dev

@@ -69,7 +69,7 @@ cd ai_crash_test_prototype
 export OPENAI_API_KEY="your-api-key-here"
 
 # 2. Start backend
-python unified_api_server.py
+python backend/run.py
 
 # 3. Start frontend (new terminal)
 cd frontend && npm run dev
@@ -244,7 +244,7 @@ graph TB
 ### **Development**
 ```bash
 # Local development
-python unified_api_server.py
+python backend/run.py
 cd frontend && npm run dev
 ```
 
@@ -296,7 +296,7 @@ helm install ai-security-testing ./helm/
 ### **Essential Commands**
 ```bash
 # Start development environment
-python unified_api_server.py &
+python backend/run.py &
 cd frontend && npm run dev
 
 # Test API health
@@ -306,7 +306,7 @@ curl http://localhost:8000/health
 ps aux | grep -E "(python|node)"
 
 # Stop all services
-pkill -f "python unified_api_server.py"
+pkill -f "python backend/run.py"
 pkill -f "npm run dev"
 ```
 

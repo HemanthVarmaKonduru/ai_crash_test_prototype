@@ -26,7 +26,7 @@ export OPENAI_API_KEY="your-api-key-here"
 ### Step 2: Start Backend
 ```bash
 # Start the API server
-python unified_api_server.py
+python backend/run.py
 ```
 ✅ **Backend running on http://localhost:8000**
 
@@ -270,7 +270,7 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" \
 curl https://api.openai.com/v1/models
 
 # Check server logs
-python unified_api_server.py  # Look for error messages
+python backend/run.py  # Look for error messages
 ```
 
 #### 4. Slow Performance
@@ -293,7 +293,7 @@ ping api.openai.com
 ```bash
 # Enable debug logging
 export LOG_LEVEL=DEBUG
-python unified_api_server.py
+python backend/run.py
 
 # Check browser console
 # Open Developer Tools (F12) and check Console tab
@@ -384,14 +384,14 @@ You've successfully set up and run your first AI security tests! The platform is
 
 ```bash
 # Start everything
-python unified_api_server.py &
+python backend/run.py &
 cd frontend && npm run dev
 
 # Test API
 curl http://localhost:8000/health
 
 # Stop everything
-pkill -f "python unified_api_server.py"
+pkill -f "python backend/run.py"
 pkill -f "npm run dev"
 ```
 

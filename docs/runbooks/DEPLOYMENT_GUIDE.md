@@ -48,8 +48,9 @@ pip install -r requirements.txt
 # Set environment variables
 export OPENAI_API_KEY="your-api-key-here"
 
-# Start the unified API server
-python unified_api_server.py
+# Start the backend API server
+python backend/run.py
+# Or: python backend/api/main.py
 ```
 
 ### 3. Frontend Setup
@@ -84,15 +85,15 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY unified_api_server.py .
+COPY backend/ ./backend/
 COPY data/ ./data/
 
 EXPOSE 8000
 
-CMD ["python", "unified_api_server.py"]
+CMD ["python", "backend/api/main.py"]
 ```
 
 ### 2. Create Dockerfile for Frontend
@@ -650,7 +651,7 @@ kubectl get configmap,secret -n ai-security-testing -o yaml > config-backup.yaml
 #### 1. API Server Not Starting
 ```bash
 # Check logs
-python unified_api_server.py
+python backend/run.py
 
 # Check port availability
 netstat -tulpn | grep :8000
@@ -702,7 +703,7 @@ curl -H "Origin: http://localhost:3000" \
 #### 1. Backend Optimization
 ```python
 # Increase worker processes
-uvicorn unified_api_server:app --workers 4 --host 0.0.0.0 --port 8000
+uvicorn backend.api.main:app --workers 4 --host 0.0.0.0 --port 8000
 
 # Enable gzip compression
 from fastapi.middleware.gzip import GZipMiddleware
