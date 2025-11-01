@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ["latin"] })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "LLMShield - Adversarial Testing Sandbox",
-  description: "Enterprise-grade adversarial testing platform for LLMs",
+  title: "Evalence - AI Security Testing",
+  description: "Comprehensive security testing platform for AI systems",
     generator: 'v0.app'
 }
 

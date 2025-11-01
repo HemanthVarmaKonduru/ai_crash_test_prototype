@@ -2,9 +2,19 @@
 
 import type React from "react"
 
-import { Shield, Target, Zap, FileText, Settings, Home, BarChart3 } from "lucide-react"
+import { Shield, Target, Zap, FileText, Settings, Home, BarChart3, LogOut, User } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -82,6 +92,46 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Get user email from localStorage
+    const email = localStorage.getItem("user_email")
+    setUserEmail(email)
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("auth_token")
+      
+      if (token) {
+        // Call logout endpoint
+        await fetch("http://localhost:8000/api/v1/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        }).catch(() => {
+          // Continue even if logout API call fails
+        })
+      }
+
+      // Clear localStorage
+      localStorage.removeItem("auth_token")
+      localStorage.removeItem("user_email")
+
+      // Redirect to login
+      router.push("/login")
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Clear storage and redirect anyway
+      localStorage.removeItem("auth_token")
+      localStorage.removeItem("user_email")
+      router.push("/login")
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -92,7 +142,7 @@ export default function DashboardLayout({
               <Shield className="size-4 text-sidebar-primary-foreground" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold">LLMShield</span>
+              <span className="text-sm font-semibold">Evalence</span>
               <span className="text-xs text-sidebar-foreground/70">Attack Lab</span>
             </div>
           </div>
@@ -138,11 +188,19 @@ export default function DashboardLayout({
 
         <SidebarFooter className="border-t border-sidebar-border">
           <SidebarMenu>
+            {userEmail && (
+              <SidebarMenuItem>
+                <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-sidebar-foreground/70">
+                  <User className="size-3" />
+                  <span className="truncate">{userEmail}</span>
+                </div>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
-              <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-sidebar-foreground/70">
-                <div className="size-2 rounded-full bg-green-500" />
-                <span>All systems operational</span>
-              </div>
+              <SidebarMenuButton onClick={handleLogout} className="cursor-pointer w-full">
+                <LogOut className="size-4" />
+                <span>Logout</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
@@ -151,28 +209,54 @@ export default function DashboardLayout({
       </Sidebar>
 
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-              </BreadcrumbItem>
-              {pathname !== "/dashboard" && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>
-                      {attackModules.find((m) => m.url === pathname)?.title ||
-                        navigationItems.find((n) => n.url === pathname)?.title ||
-                        "Page"}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-            </BreadcrumbList>
-          </Breadcrumb>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                </BreadcrumbItem>
+                {pathname !== "/dashboard" && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>
+                        {attackModules.find((m) => m.url === pathname)?.title ||
+                          navigationItems.find((n) => n.url === pathname)?.title ||
+                          "Page"}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          
+          {userEmail && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <User className="size-4" />
+                  <span className="hidden md:inline">{userEmail}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">Account</p>
+                    <p className="text-xs text-muted-foreground">{userEmail}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500">
+                  <LogOut className="mr-2 size-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">{children}</main>
       </SidebarInset>

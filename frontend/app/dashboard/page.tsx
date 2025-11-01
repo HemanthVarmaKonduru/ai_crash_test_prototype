@@ -175,50 +175,50 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card className="glass-strong neon-border relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
-        <CardHeader className="relative">
-          <CardTitle className="gradient-text">Getting Started</CardTitle>
-          <CardDescription>
-            New to LLMShield? Here's how to get the most out of your attack simulations.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="relative space-y-4">
-          <div className="flex items-start gap-4 group">
-            <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
-              1
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium">Configure your LLM endpoint</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Connect your model API in Settings to begin testing.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 group">
-            <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
-              2
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium">Select an attack module</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Choose from our curated library of adversarial tests.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 group">
-            <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
-              3
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium">Review results and reports</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Analyze vulnerabilities and export detailed security reports.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Card className="glass-strong neon-border relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
+            <CardHeader className="relative">
+              <CardTitle className="gradient-text">Getting Started</CardTitle>
+              <CardDescription>
+                New to Evalence? Here's how to get the most out of your attack simulations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative space-y-4">
+              <div className="flex items-start gap-4 group">
+                <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
+                  1
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">Configure your LLM endpoint</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Connect your model API in Settings to begin testing.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 group">
+                <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
+                  2
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">Select an attack module</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Choose from our curated library of adversarial tests.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 group">
+                <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
+                  3
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">Review results and reports</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Analyze vulnerabilities and export detailed security reports.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
     </div>
   )
 }

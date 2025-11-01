@@ -31,15 +31,15 @@ export default function Home() {
                 <Shield className="size-6 text-primary opacity-20" />
               </div>
             </div>
-            <span className="text-xl font-bold gradient-text">LLMShield</span>
+            <span className="text-xl font-bold gradient-text">Evalence</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="ghost" className="hover:bg-primary/10">
-                Dashboard
+                Sign In
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button className="glow-primary group">
                 Get Started
                 <Sparkles className="ml-2 size-4 group-hover:rotate-12 transition-transform" />
@@ -69,7 +69,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button size="lg" className="glow-primary card-3d group text-lg px-8">
                   Launch Attack Lab
                   <ArrowRight className="ml-2 size-5 group-hover:translate-x-1 transition-transform" />
@@ -103,39 +103,39 @@ export default function Home() {
                 data extraction attacks expose sensitive information.
               </p>
               <div className="space-y-4">
-                <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
-                  <div className="rounded-full bg-destructive/20 p-2 mt-1">
-                    <Target className="size-5 text-destructive" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Prompt Injection Attacks</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Attackers manipulate model outputs by injecting malicious instructions into user inputs
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
+                <div className="rounded-full bg-destructive/20 p-2 mt-1">
+                  <Target className="size-5 text-destructive" />
                 </div>
-                <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
-                  <div className="rounded-full bg-destructive/20 p-2 mt-1">
-                    <Shield className="size-5 text-destructive" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Safety Bypass Attempts</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Sophisticated jailbreak techniques circumvent built-in safety guardrails and ethical constraints
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">Prompt Injection Attacks</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Attackers manipulate model outputs by injecting malicious instructions into user inputs
+                  </p>
                 </div>
-                <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
-                  <div className="rounded-full bg-destructive/20 p-2 mt-1">
-                    <FileText className="size-5 text-destructive" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Data Leakage Risks</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Models can inadvertently expose training data, system prompts, and confidential information
-                    </p>
-                  </div>
+              </div>
+              <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
+                <div className="rounded-full bg-destructive/20 p-2 mt-1">
+                  <Shield className="size-5 text-destructive" />
                 </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">Safety Bypass Attempts</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Sophisticated jailbreak techniques circumvent built-in safety guardrails and ethical constraints
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 glass-strong rounded-lg p-4 card-3d">
+                <div className="rounded-full bg-destructive/20 p-2 mt-1">
+                  <FileText className="size-5 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">Data Leakage Risks</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Models can inadvertently expose training data, system prompts, and confidential information
+                  </p>
+                </div>
+              </div>
               </div>
             </div>
 
@@ -198,7 +198,7 @@ export default function Home() {
               <span className="text-foreground">Through Adversarial Testing</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              LLMShield empowers security teams to think like attackers. Our platform simulates real-world adversarial
+              Evalence empowers security teams to think like attackers. Our platform simulates real-world adversarial
               scenarios, helping you discover vulnerabilities before malicious actors do.
             </p>
           </div>
@@ -313,7 +313,7 @@ export default function Home() {
               <span className="gradient-text">Enterprise Teams</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join leading organizations protecting their AI systems with LLMShield
+              Trusted by leading organizations securing their AI systems
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -356,7 +356,7 @@ export default function Home() {
               first 100 tests.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button size="lg" className="glow-primary card-3d group text-lg px-8">
                   Start Free Trial
                   <ArrowRight className="ml-2 size-5 group-hover:translate-x-1 transition-transform" />
@@ -389,9 +389,9 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Shield className="size-5 text-primary" />
-              <span className="font-semibold">LLMShield</span>
+              <span className="font-semibold">Evalence</span>
             </div>
-            <span className="text-sm text-muted-foreground">© 2025 LLMShield. Enterprise AI Security Platform.</span>
+            <span className="text-sm text-muted-foreground">© 2025 Evalence. Enterprise AI Security Platform.</span>
           </div>
         </div>
       </footer>

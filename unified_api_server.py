@@ -27,6 +27,11 @@ MAX_PROMPTS_DE = 20  # Limit to first 20 prompts for data extraction
 # Global storage for test sessions
 test_sessions: Dict[str, Dict[str, Any]] = {}
 
+# Authentication configuration
+VALID_EMAIL = "testuser@123"
+VALID_PASSWORD = "Cars@$98"
+active_sessions: Dict[str, Dict[str, Any]] = {}  # Store active user sessions
+
 app = FastAPI(
     title="Unified Security Testing API",
     description="API for comprehensive prompt injection and jailbreak testing",
@@ -60,10 +65,109 @@ class TestResponse(BaseModel):
     completed_tests: int = 0
     results: Dict[str, Any] = {}
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    message: str
+    token: str = None
+    user: Dict[str, Any] = None
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "unified-security-testing"}
+
+# Authentication Endpoints
+@app.post("/api/v1/auth/login", response_model=LoginResponse)
+async def login(request: LoginRequest):
+    """User login endpoint with static credentials."""
+    try:
+        # Validate credentials
+        if request.email == VALID_EMAIL and request.password == VALID_PASSWORD:
+            # Generate session token
+            token = f"auth_{int(time.time())}_{str(uuid.uuid4())[:8]}"
+            
+            # Store session
+            active_sessions[token] = {
+                "email": request.email,
+                "token": token,
+                "created_at": datetime.now().isoformat(),
+                "expires_at": (datetime.now().timestamp() + 86400)  # 24 hours
+            }
+            
+            return LoginResponse(
+                success=True,
+                message="Login successful",
+                token=token,
+                user={
+                    "email": request.email,
+                    "token": token
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid email or password"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Login failed: {str(e)}"
+        )
+
+class LogoutRequest(BaseModel):
+    token: str
+
+@app.post("/api/v1/auth/logout")
+async def logout(request: LogoutRequest):
+    """User logout endpoint."""
+    try:
+        if request.token in active_sessions:
+            del active_sessions[request.token]
+            return {"success": True, "message": "Logout successful"}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Logout failed: {str(e)}"
+        )
+
+class VerifyRequest(BaseModel):
+    token: str
+
+@app.post("/api/v1/auth/verify")
+async def verify_token(request: VerifyRequest):
+    """Verify if a token is valid."""
+    try:
+        if request.token in active_sessions:
+            session = active_sessions[request.token]
+            # Check if token expired
+            if datetime.now().timestamp() > session["expires_at"]:
+                del active_sessions[request.token]
+                raise HTTPException(status_code=401, detail="Token expired")
+            return {
+                "valid": True,
+                "user": {
+                    "email": session["email"]
+                }
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Verification failed: {str(e)}"
+        )
 
 # Prompt Injection Endpoints
 @app.post("/api/v1/test/prompt-injection/start", response_model=TestResponse)
