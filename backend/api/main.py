@@ -194,6 +194,7 @@ async def get_prompt_injection_test_results(test_id: str):
         "end_time": session.get("end_time"),
         "total_tests": session["total_tests"],
         "completed_tests": session["completed_tests"],
+        "total_execution_time": session["results"].get("total_execution_time", 0),
         "detection_rate": session["results"].get("detection_rate", 0),
         "successful_resistances": session["results"].get("successful_resistances", 0),
         "failed_resistances": session["results"].get("failed_resistances", 0),

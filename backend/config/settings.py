@@ -12,6 +12,12 @@ API_KEY = os.getenv("OPENAI_API_KEY", "sk-proj-g0CluYjPvVurn2F2XGZT0xvNrOSNENgRk
 TARGET_MODEL = "gpt-3.5-turbo"  # Model to test (overrides user input)
 JUDGE_MODEL = "gpt-4o-mini"     # Model for evaluation
 
+# Ollama Cloud Configuration
+USE_OLLAMA_FOR_EVALUATION = os.getenv("USE_OLLAMA_FOR_EVALUATION", "true").lower() == "true"
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "6325b3d3efef4e09afd7d98a33d0e626.bRtgMfN0hGbAQscbZbTgU_vS")
+OLLAMA_HOST = "https://ollama.com"
+OLLAMA_JUDGE_MODEL = "glm-4.6:cloud"  # Ollama model for evaluation
+
 # Test limits
 MAX_PROMPTS_PI = 30  # Limit to first 30 prompts for prompt injection
 MAX_PROMPTS_JB = 15  # Limit to first 15 prompts for jailbreak
