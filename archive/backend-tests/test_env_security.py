@@ -110,8 +110,8 @@ files_to_check = [
     "backend/config/settings.py",
     "platform/services/api-gateway/src/prompt_injection_api.py",
     "platform/services/api-gateway/src/jailbreak_api.py",
-    "unified_api_server.py",
-    "simple_api_server.py"
+    "archive/legacy/unified_api_server.py",
+    "archive/legacy/simple_api_server.py"
 ]
 
 found_keys = False
