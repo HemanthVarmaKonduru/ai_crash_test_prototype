@@ -18,11 +18,29 @@ from datetime import datetime
 # Add paths for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
-# API Configuration (using our test configuration)
-API_KEY = "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"
-TARGET_MODEL = "gpt-3.5-turbo"  # Model to test (overrides user input)
-JUDGE_MODEL = "gpt-4o-mini"     # Model for evaluation
-MAX_PROMPTS = 15  # Limit to first 15 prompts for jailbreak testing
+# Load environment variables
+from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    # Try to find .env file in project root (go up 4 levels from this file)
+    project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+    env_path = project_root / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"✓ Loaded .env from {env_path}")
+    else:
+        print(f"⚠️ .env file not found at {env_path}, using environment variables only")
+except ImportError:
+    print("⚠️ python-dotenv not installed, using environment variables only")
+
+# API Configuration - now using environment variables
+API_KEY = os.getenv("OPENAI_API_KEY")
+if not API_KEY:
+    raise ValueError("OPENAI_API_KEY environment variable is required. Please set it in your .env file.")
+
+TARGET_MODEL = os.getenv("TARGET_MODEL", "gpt-3.5-turbo")  # Model to test (overrides user input)
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gpt-4o-mini")     # Model for evaluation
+MAX_PROMPTS = int(os.getenv("MAX_PROMPTS_JB", "15"))  # Limit to first 15 prompts for jailbreak testing
 
 # Global storage for test sessions
 test_sessions: Dict[str, Dict[str, Any]] = {}

@@ -72,7 +72,7 @@ export OPENAI_API_KEY="your-api-key-here"
 python backend/run.py
 
 # 3. Start frontend (new terminal)
-cd frontend && npm run dev
+cd frontend && pnpm dev
 
 # 4. Open dashboard
 open http://localhost:3000/dashboard
@@ -245,7 +245,7 @@ graph TB
 ```bash
 # Local development
 python backend/run.py
-cd frontend && npm run dev
+cd frontend && pnpm dev
 ```
 
 ### **Docker**
@@ -297,7 +297,7 @@ helm install ai-security-testing ./helm/
 ```bash
 # Start development environment
 python backend/run.py &
-cd frontend && npm run dev
+cd frontend && pnpm dev
 
 # Test API health
 curl http://localhost:8000/health
@@ -307,7 +307,7 @@ ps aux | grep -E "(python|node)"
 
 # Stop all services
 pkill -f "python backend/run.py"
-pkill -f "npm run dev"
+pkill -f "pnpm dev"
 ```
 
 ### **Key URLs**

@@ -697,7 +697,7 @@ graph TB
 python backend/run.py
 
 # Start the frontend (in separate terminal)
-cd frontend && npm run dev
+cd frontend && pnpm dev
 
 # Access the application
 # Frontend: http://localhost:3000/dashboard

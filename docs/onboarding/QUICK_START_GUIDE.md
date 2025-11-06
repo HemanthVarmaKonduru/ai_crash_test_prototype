@@ -34,8 +34,8 @@ python backend/run.py
 ```bash
 # In a new terminal, start the frontend
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 ✅ **Frontend running on http://localhost:3000**
 
@@ -253,8 +253,8 @@ echo $OPENAI_API_KEY
 node --version  # Should be 18+
 
 # Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules
+pnpm install
 
 # Check if port 3000 is available
 netstat -tulpn | grep :3000
@@ -385,14 +385,14 @@ You've successfully set up and run your first AI security tests! The platform is
 ```bash
 # Start everything
 python backend/run.py &
-cd frontend && npm run dev
+cd frontend && pnpm dev
 
 # Test API
 curl http://localhost:8000/health
 
 # Stop everything
 pkill -f "python backend/run.py"
-pkill -f "npm run dev"
+pkill -f "pnpm dev"
 ```
 
 ### Useful URLs

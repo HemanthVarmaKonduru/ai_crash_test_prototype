@@ -54,6 +54,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
 # Runtime data
 pids/
@@ -73,6 +74,11 @@ jspm_packages/
 
 # Optional npm cache directory
 .npm
+
+# Package manager lock files
+package-lock.json
+yarn.lock
+# Keep pnpm-lock.yaml (should be committed)
 
 # Optional eslint cache
 .eslintcache
@@ -196,6 +202,11 @@ dmypy.json
 secrets/
 .secrets/
 .env.secrets
+
+# Backup files (may contain exposed credentials)
+*.backup
+*.py.backup
+*.backup.*
 
 # Local development
 local/

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import apiConfig from "@/lib/api-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -237,7 +238,7 @@ export default function PromptInjectionPage() {
       setCurrentStep("Starting test...")
 
       // Start the test via API
-      const response = await fetch('http://localhost:8000/api/v1/test/prompt-injection/start', {
+      const response = await fetch(apiConfig.endpoints.promptInjection.start, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -274,7 +275,7 @@ export default function PromptInjectionPage() {
   const startPolling = (testId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${testId}/status`)
+        const response = await fetch(apiConfig.endpoints.promptInjection.status(testId))
         
         if (!response.ok) {
           throw new Error(`Failed to get status: ${response.statusText}`)
@@ -290,7 +291,7 @@ export default function PromptInjectionPage() {
           setShowResults(true)
           
           // Fetch final results
-          const resultsResponse = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${testId}/results`)
+          const resultsResponse = await fetch(apiConfig.endpoints.promptInjection.results(testId))
           if (resultsResponse.ok) {
             const results = await resultsResponse.json()
             setTestResults(results)
@@ -384,7 +385,7 @@ export default function PromptInjectionPage() {
     if (!currentTestId) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/test/prompt-injection/${currentTestId}/download`)
+      const response = await fetch(apiConfig.endpoints.promptInjection.download(currentTestId))
       
       if (!response.ok) {
         throw new Error(`Failed to download report: ${response.statusText}`)

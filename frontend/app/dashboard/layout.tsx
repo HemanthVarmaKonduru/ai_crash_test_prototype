@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { Shield, Target, Zap, FileText, Settings, Home, BarChart3, LogOut, User } from "lucide-react"
+import { Shield, Target, Zap, FileText, Settings, Home, BarChart3, LogOut, User, TrendingUp } from "lucide-react"
+import apiConfig from "@/lib/api-config"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -75,6 +76,11 @@ const navigationItems = [
     url: "/dashboard",
   },
   {
+    title: "Evals & Analytics",
+    icon: TrendingUp,
+    url: "/dashboard/evals",
+  },
+  {
     title: "Reports",
     icon: BarChart3,
     url: "/dashboard/reports",
@@ -107,7 +113,7 @@ export default function DashboardLayout({
       
       if (token) {
         // Call logout endpoint
-        await fetch("http://localhost:8000/api/v1/auth/logout", {
+        await fetch(apiConfig.endpoints.logout, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

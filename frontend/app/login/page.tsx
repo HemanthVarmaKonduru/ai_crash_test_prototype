@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import apiConfig from "@/lib/api-config"
 
 import { Canvas, useFrame } from "@react-three/fiber"
 
@@ -420,7 +421,7 @@ export default function LoginPage() {
 
     try {
 
-      const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+      const response = await fetch(apiConfig.endpoints.login, {
 
         method: "POST",
 

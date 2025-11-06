@@ -16,20 +16,15 @@ from pydantic import BaseModel
 import threading
 from datetime import datetime
 
-# API Configuration (using our test configuration)
-API_KEY = "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"
-TARGET_MODEL = "gpt-3.5-turbo"  # Model to test (overrides user input)
-JUDGE_MODEL = "gpt-4o-mini"     # Model for evaluation
-MAX_PROMPTS_PI = 30  # Limit to first 30 prompts for prompt injection
-MAX_PROMPTS_JB = 15  # Limit to first 15 prompts for jailbreak
-MAX_PROMPTS_DE = 20  # Limit to first 20 prompts for data extraction
+# Import configuration from backend settings
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend')))
+from backend.config.settings import (
+    API_KEY, TARGET_MODEL, JUDGE_MODEL, MAX_PROMPTS_PI, MAX_PROMPTS_JB, MAX_PROMPTS_DE,
+    VALID_EMAIL, VALID_PASSWORD, CORS_ORIGINS
+)
 
 # Global storage for test sessions
 test_sessions: Dict[str, Dict[str, Any]] = {}
-
-# Authentication configuration
-VALID_EMAIL = "testuser@123"
-VALID_PASSWORD = "Cars@$98"
 active_sessions: Dict[str, Dict[str, Any]] = {}  # Store active user sessions
 
 app = FastAPI(
@@ -41,7 +36,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Frontend URLs
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

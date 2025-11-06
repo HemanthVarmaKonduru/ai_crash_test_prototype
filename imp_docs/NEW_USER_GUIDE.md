@@ -240,8 +240,8 @@ python backend/run.py
 Frontend:
 ```bash
 cd frontend
-pnpm install  # or npm install
-pnpm dev      # or npm run dev
+pnpm install
+pnpm dev
 # App: http://localhost:3000
 ```
 

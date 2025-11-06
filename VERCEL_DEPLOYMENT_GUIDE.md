@@ -51,7 +51,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 1. **Install Vercel CLI** (optional):
    ```bash
-   npm i -g vercel
+   pnpm add -g vercel
    ```
 
 2. **Update API URLs in Frontend**:
@@ -80,7 +80,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 2. **Deploy Backend** (example with Railway):
    ```bash
    # Install Railway CLI
-   npm i -g @railway/cli
+   pnpm add -g @railway/cli
    
    # Login
    railway login

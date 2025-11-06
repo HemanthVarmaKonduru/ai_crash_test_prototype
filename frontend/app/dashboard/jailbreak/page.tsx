@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import apiConfig from "@/lib/api-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -217,7 +218,7 @@ export default function JailbreakPage() {
     setTestResults(null)
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/test/jailbreak/start", {
+      const response = await fetch(apiConfig.endpoints.jailbreak.start, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -253,7 +254,7 @@ export default function JailbreakPage() {
   const startPolling = (testId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/test/jailbreak/${testId}/status`)
+        const response = await fetch(apiConfig.endpoints.jailbreak.status(testId))
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -270,7 +271,7 @@ export default function JailbreakPage() {
     setShowResults(true)
           
           // Fetch final results
-          const resultsResponse = await fetch(`http://localhost:8000/api/v1/test/jailbreak/${testId}/results`)
+          const resultsResponse = await fetch(apiConfig.endpoints.jailbreak.results(testId))
           if (resultsResponse.ok) {
             const resultsData = await resultsResponse.json()
             setTestResults(resultsData)
@@ -329,7 +330,7 @@ export default function JailbreakPage() {
     if (!currentTestId) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/test/jailbreak/${currentTestId}/download`)
+      const response = await fetch(apiConfig.endpoints.jailbreak.download(currentTestId))
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

@@ -59,10 +59,10 @@ python backend/run.py
 cd frontend
 
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm dev
 ```
 
 ### 4. Verify Installation
@@ -103,15 +103,15 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile --prod
 
 COPY . .
-RUN npm run build
+RUN pnpm build
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
 ```
 
 ### 3. Create Docker Compose
@@ -665,12 +665,12 @@ pip list | grep fastapi
 # Check Node.js version
 node --version
 
-# Clear npm cache
-npm cache clean --force
+# Clear pnpm cache
+pnpm store prune
 
 # Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules
+pnpm install
 ```
 
 #### 3. Kubernetes Pod Issues
