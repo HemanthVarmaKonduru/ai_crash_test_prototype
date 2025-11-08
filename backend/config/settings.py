@@ -61,6 +61,6 @@ DATA_EXTRACTION_DATASET = DATA_DIR / "data_extraction_comprehensive.json"
 CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "")
 CORS_ORIGINS = (
     CORS_ORIGINS_ENV.split(",") if CORS_ORIGINS_ENV
-    else ["http://localhost:3000", "http://localhost:3001"]
+    else ["http://localhost:3000", "http://localhost:3001","https://ai-crash-test-prototype.vercel.app/"]
 )
 
