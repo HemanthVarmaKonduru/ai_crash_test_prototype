@@ -1,4 +1,5 @@
 {
-    "installCommand": "pnpm install --no-frozen-lockfile",
-    "buildCommand": "pnpm build"
-}
+    "installCommand": "cd frontend && pnpm install --no-frozen-lockfile",
+    "buildCommand": "cd frontend && pnpm build",
+    "outputDirectory": "frontend/.next"
+  }
