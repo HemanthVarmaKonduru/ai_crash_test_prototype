@@ -7,7 +7,14 @@ Supports caching for performance optimization.
 import os
 from typing import List, Optional, Dict
 from functools import lru_cache
-import numpy as np
+
+# Make numpy optional - only needed for local embeddings with sentence-transformers
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
 
 try:
     from openai import AsyncOpenAI
@@ -71,14 +78,23 @@ class EmbeddingService:
             self._embed_func = self._get_openai_embedding
         else:
             if not SENTENCE_TRANSFORMERS_AVAILABLE:
-                raise ImportError(
-                    "sentence-transformers required for local embeddings. "
-                    "Install with: pip install sentence-transformers"
-                )
-            
-            # Load model (this is synchronous, done once)
-            self.model = SentenceTransformer(local_model)
-            self._embed_func = self._get_local_embedding
+                # Fallback to OpenAI if sentence-transformers not available
+                if OPENAI_AVAILABLE and openai_api_key:
+                    print("⚠️ sentence-transformers not available, falling back to OpenAI embeddings")
+                    self.use_openai = True
+                    self.client = AsyncOpenAI(api_key=openai_api_key)
+                    self.model = openai_model
+                    self._embed_func = self._get_openai_embedding
+                else:
+                    raise ImportError(
+                        "sentence-transformers required for local embeddings. "
+                        "Install with: pip install sentence-transformers, "
+                        "or set use_openai=True with openai_api_key"
+                    )
+            else:
+                # Load model (this is synchronous, done once)
+                self.model = SentenceTransformer(local_model)
+                self._embed_func = self._get_local_embedding
     
     async def get_embedding(self, text: str) -> List[float]:
         """
@@ -183,6 +199,7 @@ class EmbeddingService:
     def cosine_similarity(embedding1: List[float], embedding2: List[float]) -> float:
         """
         Calculate cosine similarity between two embeddings.
+        Uses pure Python implementation (no numpy required).
         
         Args:
             embedding1: First embedding vector
@@ -197,12 +214,16 @@ class EmbeddingService:
         if not isinstance(embedding2, list):
             embedding2 = [float(x) for x in embedding2]
         
-        vec1 = np.array(embedding1, dtype=np.float32)
-        vec2 = np.array(embedding2, dtype=np.float32)
+        # Check length match
+        if len(embedding1) != len(embedding2):
+            raise ValueError("Embeddings must have the same length")
         
-        dot_product = np.dot(vec1, vec2)
-        norm1 = np.linalg.norm(vec1)
-        norm2 = np.linalg.norm(vec2)
+        # Pure Python dot product
+        dot_product = sum(a * b for a, b in zip(embedding1, embedding2))
+        
+        # Pure Python norm calculation
+        norm1 = sum(a * a for a in embedding1) ** 0.5
+        norm2 = sum(b * b for b in embedding2) ** 0.5
         
         if norm1 == 0 or norm2 == 0:
             return 0.0

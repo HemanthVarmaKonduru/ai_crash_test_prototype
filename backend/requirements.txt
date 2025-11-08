@@ -3,13 +3,11 @@ uvicorn[standard]>=0.24.0
 pydantic>=2.0.0
 openai>=1.0.0
 python-dotenv>=1.0.0
-sentence-transformers>=2.2.0
-numpy>=1.24.0
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
 # Note: Ollama Cloud uses OpenAI-compatible API, no additional package needed
-# sentence-transformers: For local embeddings (default, free)
-# numpy: Required by sentence-transformers for vector operations
+# Note: sentence-transformers and numpy removed to reduce image size
+#       Use OpenAI embeddings instead by setting USE_OPENAI_EMBEDDINGS=true
 # pytest: For unit and integration testing
 # pytest-asyncio: For async test support
 
