@@ -21,7 +21,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+data/crash_test_prompts_transformed.jsonl
 # Virtual environments
 .env
 .venv
