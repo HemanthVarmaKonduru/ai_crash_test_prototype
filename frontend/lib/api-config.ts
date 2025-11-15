@@ -38,6 +38,40 @@ export const apiConfig = {
       results: (testId: string) => `${API_URL}/api/v1/test/data-extraction/${testId}/results`,
       download: (testId: string) => `${API_URL}/api/v1/test/data-extraction/${testId}/download`,
     },
+    
+    // Adversarial Attacks endpoints
+    adversarialAttacks: {
+      start: `${API_URL}/api/v1/test/adversarial-attacks/start`,
+      status: (testId: string) => `${API_URL}/api/v1/test/adversarial-attacks/${testId}/status`,
+      results: (testId: string) => `${API_URL}/api/v1/test/adversarial-attacks/${testId}/results`,
+      download: (testId: string) => `${API_URL}/api/v1/test/adversarial-attacks/${testId}/download`,
+    },
+    
+    // Firewall endpoints
+    firewall: {
+      overview: `${API_URL}/api/v1/firewall/overview`,
+      stats: `${API_URL}/api/v1/firewall/stats`,
+      evaluateInput: `${API_URL}/api/v1/firewall/evaluate/input`,
+      evaluateOutput: `${API_URL}/api/v1/firewall/evaluate/output`,
+      chat: `${API_URL}/api/v1/firewall/chat`,
+      inputRules: `${API_URL}/api/v1/firewall/rules/input`,
+      outputRules: `${API_URL}/api/v1/firewall/rules/output`,
+      blockedInputs: `${API_URL}/api/v1/firewall/blocked/inputs`,
+      blockedOutputs: `${API_URL}/api/v1/firewall/blocked/outputs`,
+      threats: `${API_URL}/api/v1/firewall/threats`,
+      patterns: `${API_URL}/api/v1/firewall/patterns`,
+      incidents: `${API_URL}/api/v1/firewall/incidents`,
+      incidentDetails: (id: string) => `${API_URL}/api/v1/firewall/incidents/${id}`,
+      analytics: `${API_URL}/api/v1/firewall/analytics`,
+      metrics: `${API_URL}/api/v1/firewall/metrics`,
+    },
+    
+    // Analytics endpoints
+    analytics: {
+      summary: `${API_URL}/api/v1/analytics/summary`,
+      test: (testId: string) => `${API_URL}/api/v1/analytics/test/${testId}`,
+      module: (moduleType: string) => `${API_URL}/api/v1/analytics/module/${moduleType}`,
+    },
   },
 }
 

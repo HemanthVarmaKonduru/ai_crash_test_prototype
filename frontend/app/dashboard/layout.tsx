@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { Shield, Target, Zap, FileText, Settings, Home, BarChart3, LogOut, User, TrendingUp } from "lucide-react"
+import { Shield, Target, Zap, FileText, Settings, Home, BarChart3, LogOut, User, TrendingUp, ShieldCheck, FileCheck, Brain, AlertTriangle, MessageSquare } from "lucide-react"
 import apiConfig from "@/lib/api-config"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -89,6 +89,51 @@ const navigationItems = [
     title: "Settings",
     icon: Settings,
     url: "/dashboard/settings",
+  },
+]
+
+const firewallModules = [
+  {
+    title: "Firewall Dashboard",
+    icon: Shield,
+    url: "/dashboard/firewall",
+    description: "Real-time security monitoring",
+  },
+  {
+    title: "Input Guardrails",
+    icon: ShieldCheck,
+    url: "/dashboard/firewall/input-guardrails",
+    description: "Evaluate user prompts before LLM",
+  },
+  {
+    title: "Output Evaluation",
+    icon: FileCheck,
+    url: "/dashboard/firewall/output-evaluation",
+    description: "Evaluate LLM responses",
+  },
+  {
+    title: "Threat Intelligence",
+    icon: Brain,
+    url: "/dashboard/firewall/threat-intelligence",
+    description: "Threat pattern detection",
+  },
+  {
+    title: "Incident Response",
+    icon: AlertTriangle,
+    url: "/dashboard/firewall/incident-response",
+    description: "Manage security incidents",
+  },
+  {
+    title: "Analytics",
+    icon: BarChart3,
+    url: "/dashboard/firewall/analytics",
+    description: "Monitoring & analytics",
+  },
+  {
+    title: "Chat",
+    icon: MessageSquare,
+    url: "/dashboard/firewall/chat",
+    description: "Test firewall with chat interface",
   },
 ]
 
@@ -190,6 +235,24 @@ export default function DashboardLayout({
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Firewall (Production)</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {firewallModules.map((module) => (
+                  <SidebarMenuItem key={module.title}>
+                    <SidebarMenuButton asChild isActive={pathname === module.url} tooltip={module.description}>
+                      <Link href={module.url}>
+                        <module.icon />
+                        <span>{module.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border">
@@ -230,6 +293,7 @@ export default function DashboardLayout({
                     <BreadcrumbItem>
                       <BreadcrumbPage>
                         {attackModules.find((m) => m.url === pathname)?.title ||
+                          firewallModules.find((f) => f.url === pathname)?.title ||
                           navigationItems.find((n) => n.url === pathname)?.title ||
                           "Page"}
                       </BreadcrumbPage>

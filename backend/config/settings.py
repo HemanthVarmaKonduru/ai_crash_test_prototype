@@ -32,6 +32,7 @@ USE_OLLAMA_FOR_EVALUATION = os.getenv("USE_OLLAMA_FOR_EVALUATION", "true").lower
 OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com")
 OLLAMA_JUDGE_MODEL = os.getenv("OLLAMA_JUDGE_MODEL", "glm-4.6:cloud")  # Ollama model for evaluation
+OLLAMA_FIREWALL_MODEL = os.getenv("OLLAMA_FIREWALL_MODEL", "gpt-oss:20b-cloud")  # Ollama model for firewall chat
 
 # Validate Ollama configuration if using Ollama for evaluation
 if USE_OLLAMA_FOR_EVALUATION and not OLLAMA_API_KEY:
@@ -41,6 +42,7 @@ if USE_OLLAMA_FOR_EVALUATION and not OLLAMA_API_KEY:
 MAX_PROMPTS_PI = 30  # Limit to first 30 prompts for prompt injection
 MAX_PROMPTS_JB = 15  # Limit to first 15 prompts for jailbreak
 MAX_PROMPTS_DE = 20  # Limit to first 20 prompts for data extraction
+MAX_PROMPTS_ADVERSARIAL = 30  # Limit to first 30 prompts for adversarial attacks
 
 # Authentication configuration
 VALID_EMAIL = os.getenv("VALID_EMAIL")
@@ -56,6 +58,7 @@ DATA_DIR = BASE_DIR / "data"
 PROMPT_INJECTION_DATASET = DATA_DIR / "prompt_injection_comprehensive_processed.json"
 JAILBREAK_DATASET = DATA_DIR / "jailbreak.json"
 DATA_EXTRACTION_DATASET = DATA_DIR / "data_extraction_comprehensive.json"
+ADVERSARIAL_ATTACKS_DATASET = DATA_DIR / "modules" / "adversarial_attacks" / "adversarial_attacks_test_30.json"
 
 # CORS settings - supports environment variable for production
 CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "")

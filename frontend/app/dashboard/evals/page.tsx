@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,8 +20,33 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import apiConfig from "@/lib/api-config"
 
-// Mock data for analytics
+// Module type mapping
+const MODULE_TYPE_MAP: Record<string, string> = {
+  prompt_injection: "Prompt Injection",
+  jailbreak: "Jailbreak Detection",
+  data_extraction: "Data Extraction",
+  adversarial_attacks: "Adversarial Attacks",
+}
+
+// Module icons
+const MODULE_ICONS: Record<string, any> = {
+  "Prompt Injection": Target,
+  "Jailbreak Detection": Shield,
+  "Data Extraction": FileText,
+  "Adversarial Attacks": Zap,
+}
+
+// Module colors
+const MODULE_COLORS: Record<string, string> = {
+  "Prompt Injection": "#6366f1",
+  "Jailbreak Detection": "#ec4899",
+  "Data Extraction": "#06b6d4",
+  "Adversarial Attacks": "#a855f7",
+}
+
+// Default mock data (fallback)
 const moduleStats = [
   {
     module: "Prompt Injection",
@@ -138,6 +164,107 @@ const responseTimeData = moduleStats.map((m) => ({
 }))
 
 export default function EvalsPage() {
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const response = await fetch(apiConfig.endpoints.analytics.summary)
+        if (response.ok) {
+          const data = await response.json()
+          setAnalyticsData(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch analytics:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalytics()
+  }, [])
+
+  // Transform API data to match UI structure
+  const transformAnalyticsData = () => {
+    if (!analyticsData || !analyticsData.by_module) {
+      return { moduleStats: moduleStats, totals: totals }
+    }
+
+    const transformedModules = Object.entries(analyticsData.by_module).map(([moduleType, stats]: [string, any]) => {
+      const moduleName = MODULE_TYPE_MAP[moduleType] || moduleType
+      const Icon = MODULE_ICONS[moduleName] || Activity
+      const color = MODULE_COLORS[moduleName] || "#6366f1"
+
+      return {
+        module: moduleName,
+        icon: Icon,
+        totalTests: stats.total_tests || 0,
+        prompts: stats.total_prompts || 0,
+        successful: stats.successful || 0,
+        failures: stats.failures || 0,
+        avgResponseTime: stats.avg_response_time || 0,
+        avgEvalTime: 0, // Not directly available, could calculate from test runs
+        avgTestTime: stats.average_time || 0,
+        totalCost: stats.total_cost || 0,
+        totalTokens: stats.total_tokens || 0,
+        avgTokensPerRun: stats.average_tokens || 0,
+        color: color,
+        gradient: `from-${color.replace('#', '')}-500/10 to-${color.replace('#', '')}-500/10`,
+      }
+    })
+
+    // Calculate totals
+    const calculatedTotals = {
+      tests: transformedModules.reduce((sum, m) => sum + m.totalTests, 0),
+      prompts: transformedModules.reduce((sum, m) => sum + m.prompts, 0),
+      successful: transformedModules.reduce((sum, m) => sum + m.successful, 0),
+      failures: transformedModules.reduce((sum, m) => sum + m.failures, 0),
+      cost: transformedModules.reduce((sum, m) => sum + m.totalCost, 0),
+      tokens: transformedModules.reduce((sum, m) => sum + m.totalTokens, 0),
+    }
+
+    return {
+      moduleStats: transformedModules.length > 0 ? transformedModules : moduleStats,
+      totals: calculatedTotals.tests > 0 ? calculatedTotals : totals,
+    }
+  }
+
+  const { moduleStats: displayModuleStats, totals: displayTotals } = transformAnalyticsData()
+
+  // Recalculate derived data
+  const successRateData = displayModuleStats.map((m: any) => ({
+    module: m.module.split(" ")[0],
+    successRate: m.prompts > 0 ? ((m.successful / m.prompts) * 100).toFixed(1) : "0",
+    failureRate: m.prompts > 0 ? ((m.failures / m.prompts) * 100).toFixed(1) : "0",
+  }))
+
+  const costBreakdownData = displayModuleStats.map((m: any) => ({
+    name: m.module.split(" ")[0],
+    value: m.totalCost,
+    color: m.color,
+  }))
+
+  const tokenConsumptionData = displayModuleStats.map((m: any) => ({
+    module: m.module.split(" ")[0],
+    tokens: m.totalTokens / 1000, // Convert to K
+    avgPerRun: m.avgTokensPerRun,
+  }))
+
+  const responseTimeData = displayModuleStats.map((m: any) => ({
+    module: m.module.split(" ")[0],
+    response: m.avgResponseTime,
+    evaluation: m.avgEvalTime,
+    total: m.avgTestTime,
+  }))
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Loading analytics...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -163,7 +290,7 @@ export default function EvalsPage() {
             <Activity className="size-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totals.tests.toLocaleString()}</div>
+            <div className="text-3xl font-bold">{displayTotals.tests.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">Across all modules</p>
           </CardContent>
         </Card>
@@ -174,7 +301,7 @@ export default function EvalsPage() {
             <FileText className="size-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totals.prompts.toLocaleString()}</div>
+            <div className="text-3xl font-bold">{displayTotals.prompts.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">Sent to models</p>
           </CardContent>
         </Card>
@@ -186,10 +313,10 @@ export default function EvalsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {((totals.successful / totals.tests) * 100).toFixed(1)}%
+              {displayTotals.prompts > 0 ? ((displayTotals.successful / displayTotals.prompts) * 100).toFixed(1) : "0"}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totals.successful} successful / {totals.failures} failures
+              {displayTotals.successful} successful / {displayTotals.failures} failures
             </p>
           </CardContent>
         </Card>
@@ -200,7 +327,7 @@ export default function EvalsPage() {
             <DollarSign className="size-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">${totals.cost.toFixed(2)}</div>
+            <div className="text-3xl font-bold">${displayTotals.cost.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">LLM API costs</p>
           </CardContent>
         </Card>
@@ -210,7 +337,7 @@ export default function EvalsPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Module Performance</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          {moduleStats.map((module) => (
+          {displayModuleStats.map((module: any) => (
             <Card key={module.module} className={`border-primary/20 bg-gradient-to-br ${module.gradient}`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -228,7 +355,7 @@ export default function EvalsPage() {
                       borderColor: module.color,
                     }}
                   >
-                    {((module.successful / module.totalTests) * 100).toFixed(1)}% success
+                    {module.prompts > 0 ? ((module.successful / module.prompts) * 100).toFixed(1) : "0"}% success
                   </Badge>
                 </div>
               </CardHeader>
@@ -438,7 +565,7 @@ export default function EvalsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(moduleStats.reduce((sum, m) => sum + m.avgResponseTime, 0) / moduleStats.length).toFixed(2)}s
+              {displayModuleStats.length > 0 ? (displayModuleStats.reduce((sum: number, m: any) => sum + m.avgResponseTime, 0) / displayModuleStats.length).toFixed(2) : "0"}s
             </div>
             <p className="text-xs text-muted-foreground mt-1">Across all modules</p>
           </CardContent>
@@ -453,7 +580,7 @@ export default function EvalsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(moduleStats.reduce((sum, m) => sum + m.avgTokensPerRun, 0) / moduleStats.length)}
+              {displayModuleStats.length > 0 ? Math.round(displayModuleStats.reduce((sum: number, m: any) => sum + m.avgTokensPerRun, 0) / displayModuleStats.length) : 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Per test execution</p>
           </CardContent>
@@ -467,7 +594,7 @@ export default function EvalsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(totals.cost / totals.tests).toFixed(3)}</div>
+            <div className="text-2xl font-bold">${displayTotals.tests > 0 ? (displayTotals.cost / displayTotals.tests).toFixed(3) : "0.000"}</div>
             <p className="text-xs text-muted-foreground mt-1">Average across all tests</p>
           </CardContent>
         </Card>

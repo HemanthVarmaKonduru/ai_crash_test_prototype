@@ -39,4 +39,42 @@ class VerifyRequest(BaseModel):
     token: str
 
 
+# Firewall Input Guardrails Schemas
+class FirewallEvaluationRequest(BaseModel):
+    input_text: str
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+    conversation_history: list = []
+    application_id: Optional[str] = None
+
+
+class FirewallEvaluationResponse(BaseModel):
+    decision: str  # allowed, blocked, sanitized, throttled
+    confidence: float
+    evaluation_id: str
+    latency_ms: float
+    threat_detected: Optional[str] = None
+    severity: Optional[str] = None
+    user_message: Optional[str] = None
+    sanitized_input: Optional[str] = None
+    timestamp: str
+    details: Dict[str, Any] = {}
+
+
+# Firewall Chat Schemas
+class FirewallChatRequest(BaseModel):
+    message: str
+    conversation_history: list = []  # List of previous messages
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+class FirewallChatResponse(BaseModel):
+    response: str
+    evaluation_result: Optional[FirewallEvaluationResponse] = None
+    latency_ms: float
+    timestamp: str
 
